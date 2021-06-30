@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import './App.css';
-import {Button, FormControl, FormControlLabel, Radio, RadioGroup} from '@material-ui/core';
+import {Box, Button, FormControl, FormControlLabel, Radio, RadioGroup} from '@material-ui/core';
 import MicIcon from '@material-ui/icons/Mic';
 import StopIcon from '@material-ui/icons/Stop';
 import SearchIcon from '@material-ui/icons/Search';
@@ -27,8 +27,13 @@ function App() {
     useEffect(checkSupported, []);
 
     const getMicrophones = async () => {
+        // First get permission:
+        await navigator.mediaDevices.getUserMedia({audio: true, video: false})
+            .then(() => console.log('success'));
+
         navigator.mediaDevices.enumerateDevices().then((devices) => {
             devices = devices.filter((d) => d.kind === 'audioinput');
+            console.log('found devices: ', devices);
             setDevices(devices as InputDeviceInfo[]);
         });
     }
@@ -84,23 +89,25 @@ function App() {
                 {supported === true
                 && <>
                   <div>
-                    <p>
+                    <Box fontSize="h4.fontSize" m={1}>
                       Record from an audio input device and play it back with a delay.
-                    </p>
-                    <p className={'small'}>
+                    </Box>
+
+                    <Box fontSize="h6.fontSize" m={2}>
                       Remember to not use the same input and audio device unless you want to go into a feedback loop.
-                    </p>
-                    <p>
+                    </Box>
+
+                    <div>
                         {devices.length === 0 && <Button onClick={getMicrophones}
                                                          startIcon={<SearchIcon/>}
                                                          variant="contained"
                                                          color="primary"
                         >Detect available
                           devices</Button>}
-                    </p>
+                    </div>
                   </div>
                     {devices.length > 0 && <>
-                      <p>
+                      <Box m={1}>
                         <DelaySlider
                           delay={delay}
                           setDelay={setDelay}
@@ -108,8 +115,8 @@ function App() {
                           maxDelay={maxDelay}
                           disabled={stream !== undefined}
                         />
-                      </p>
-                      <p>{stream
+                      </Box>
+                      <Box m={1}>{stream
                           ? <div>
                               {stream && <Button onClick={stop}
                                                  startIcon={<StopIcon/>}
@@ -119,24 +126,26 @@ function App() {
                           </div>
                           : <div>
                               <Button onClick={start}
-                                               startIcon={<MicIcon/>}
-                                               variant="contained"
-                                               color="primary"
-                                               disabled={micId === undefined}
-                                  >Record</Button>
+                                      startIcon={<MicIcon/>}
+                                      variant="contained"
+                                      color="primary"
+                                      disabled={micId === undefined}
+                              >Record</Button>
                           </div>
                       }
-                      </p>
+                      </Box>
 
-                      <FormControl component="fieldset">
-                        <RadioGroup aria-label="gender" name="gender1" value={micId} onChange={onRadioChange}>
-                            {devices.map(d => (
-                                <FormControlLabel key={d.deviceId} value={d.deviceId} control={<Radio/>}
-                                                  label={d.label}/>
+                      <Box m={1}>
+                        <FormControl component="fieldset">
+                          <RadioGroup aria-label="deviceId" name="DeviceId" value={micId || false} onChange={onRadioChange}>
+                              {devices.map(d => (
+                                  <FormControlLabel key={d.deviceId} value={d.deviceId} control={<Radio/>}
+                                                    label={d.label}/>
 
-                            ))}
-                        </RadioGroup>
-                      </FormControl>
+                              ))}
+                          </RadioGroup>
+                        </FormControl>
+                      </Box>
 
                       <p>
                         <Button onClick={getMicrophones}
