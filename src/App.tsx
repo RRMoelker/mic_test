@@ -1,13 +1,21 @@
 import React, {useEffect, useState} from 'react';
 import './App.css';
+import {Button, FormControl, FormControlLabel, Radio, RadioGroup} from '@material-ui/core';
+import MicIcon from '@material-ui/icons/Mic';
+import StopIcon from '@material-ui/icons/Stop';
+import SearchIcon from '@material-ui/icons/Search';
+import DelaySlider from "./components/DelaySlider";
 
 const AudioContext = window.AudioContext;
 
 function App() {
+    const minDelay = 0;
+    const maxDelay = 3;
     const [supported, setSupported] = useState<boolean | string | undefined>(undefined);
     const [devices, setDevices] = useState<InputDeviceInfo[]>([]);
     const [micId, setMicId] = useState<string | undefined>();
     const [stream, setStream] = useState<MediaStream | undefined>()
+    const [delay, setDelay] = useState(1);
 
     const checkSupported = () => {
         if (navigator.mediaDevices && AudioContext) {
@@ -41,8 +49,8 @@ function App() {
         const audioContext = new AudioContext();
         const source = audioContext.createMediaStreamSource(stream);
 
-        const delayNode = audioContext.createDelay();
-        delayNode.delayTime.value = 1; // seconds
+        const delayNode = audioContext.createDelay(maxDelay);
+        delayNode.delayTime.value = delay; // seconds
 
         source.connect(delayNode).connect(audioContext.destination);
     }
@@ -61,6 +69,11 @@ function App() {
         setMicId(deviceId);
     }
 
+    const onRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        switchMic((event.target as HTMLInputElement).value);
+    };
+
+
     return (
         <div className="App">
             <header className="App-header">
@@ -78,30 +91,60 @@ function App() {
                       Remember to not use the same input and audio device unless you want to go into a feedback loop.
                     </p>
                     <p>
-                        {devices.length === 0 && <button onClick={getMicrophones}>Detect available devices</button>}
+                        {devices.length === 0 && <Button onClick={getMicrophones}
+                                                         startIcon={<SearchIcon/>}
+                                                         variant="contained"
+                                                         color="primary"
+                        >Detect available
+                          devices</Button>}
                     </p>
                   </div>
-
                     {devices.length > 0 && <>
-                      <div>{stream
+                      <p>
+                        <DelaySlider
+                          delay={delay}
+                          setDelay={setDelay}
+                          minDelay={minDelay}
+                          maxDelay={maxDelay}
+                          disabled={stream !== undefined}
+                        />
+                      </p>
+                      <p>{stream
                           ? <div>
-                              Recording {stream && <button onClick={stop}>Stop</button>}
+                              {stream && <Button onClick={stop}
+                                                 startIcon={<StopIcon/>}
+                                                 variant="contained"
+                                                 color="primary"
+                              >Stop</Button>}
                           </div>
                           : <div>
-                              Not recording {micId && <button onClick={start}>Record</button>}
+                              <Button onClick={start}
+                                               startIcon={<MicIcon/>}
+                                               variant="contained"
+                                               color="primary"
+                                               disabled={micId === undefined}
+                                  >Record</Button>
                           </div>
                       }
-                      </div>
-                      <h2>Devices</h2>
-                      <ol className={'devices'}>
-                          {devices.map(d => (
-                              <li
-                                  key={d.deviceId}
-                                  className={micId === d.deviceId ? 'active' : ''}
-                                  onClick={() => switchMic(d.deviceId)}
-                              >{d.label}</li>
-                          ))}
-                      </ol>
+                      </p>
+
+                      <FormControl component="fieldset">
+                        <RadioGroup aria-label="gender" name="gender1" value={micId} onChange={onRadioChange}>
+                            {devices.map(d => (
+                                <FormControlLabel key={d.deviceId} value={d.deviceId} control={<Radio/>}
+                                                  label={d.label}/>
+
+                            ))}
+                        </RadioGroup>
+                      </FormControl>
+
+                      <p>
+                        <Button onClick={getMicrophones}
+                                startIcon={<SearchIcon/>}
+                                variant="contained"
+
+                        >Refresh devices</Button>
+                      </p>
                     </>}
                 </>}
             </header>

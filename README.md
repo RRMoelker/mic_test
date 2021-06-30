@@ -1,4 +1,7 @@
-# Getting Started with Create React App
+Basic web app that plays back microphone recording on same devices, possibly with a delay.
+Useful for checking directly checking how your microphone sounds.
+
+# Original create-react-app readme:
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
